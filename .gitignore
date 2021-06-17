@@ -20,7 +20,7 @@ dist/
 wallet/
 !wallet/.gitkeep
 bin/
-/public/build/
+*/public/build/
 *.tar.gz
 *.zip
 *.old
