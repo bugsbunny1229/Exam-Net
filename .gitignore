@@ -15,7 +15,10 @@ log.txt
 .DS_Store
 .vscode/
 node_modules/
+jspm_packages/
+dist/
 wallet/
+!wallet/.gitkeep
 bin/
 /public/build/
 *.tar.gz
