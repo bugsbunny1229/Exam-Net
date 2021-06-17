@@ -1,0 +1,63 @@
+---
+name: network-${ORG}
+version: 1.0.0
+client:
+    organization: ${ORG}
+    connection:
+        timeout:
+            peer:
+                endorser: "300"
+organizations:
+    ${ORG}:
+        mspid: ${ORG}MSP
+        peers:
+            - peer0.${ORG}.iiitm.com
+        certificateAuthorities:
+            - ca.${ORG}.iiitm.com
+peers:
+    peer0.${ORG}.iiitm.com:
+        url: grpcs://localhost:${P0PORT}
+        tlsCACerts:
+            pem: |
+                ${PEERPEM}
+        grpcOptions:
+            ssl-target-name-override: peer0.${ORG}.iiitm.com
+            hostnameOverride: peer0.${ORG}.iiitm.com
+
+    peer1.${ORG}.iiitm.com:
+        url: grpcs://localhost:${P1PORT}
+        tlsCACerts:
+            pem: |
+                ${PEERPEM}
+        grpcOptions:
+            ssl-target-name-override: peer1.${ORG}.iiitm.com
+            hostnameOverride: peer1.${ORG}.iiitm.com
+
+    peer2.${ORG}.iiitm.com:
+        url: grpcs://localhost:${P2PORT}
+        tlsCACerts:
+            pem: |
+                ${PEERPEM}
+        grpcOptions:
+            ssl-target-name-override: peer2.${ORG}.iiitm.com
+            hostnameOverride: peer2.${ORG}.iiitm.com
+
+    peer3.${ORG}.iiitm.com:
+        url: grpcs://localhost:${P3PORT}
+        tlsCACerts:
+            pem: |
+                ${PEERPEM}
+        grpcOptions:
+            ssl-target-name-override: peer3.${ORG}.iiitm.com
+            hostnameOverride: peer3.${ORG}.iiitm.com
+
+certificateAuthorities:
+    ca.${ORG}.iiitm.com:
+        url: https://localhost:${CAPORT}
+        caName: ca-${ORG}
+        tlsCACerts:
+            pem:
+                - |
+                    ${CAPEM}
+        httpOptions:
+            verify: false

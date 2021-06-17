@@ -1,0 +1,65 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: "2.4"
+
+networks:
+    test:
+        name: fabric_test
+
+services:
+    ca_examiners:
+        image: hyperledger/fabric-ca:latest
+        labels:
+            service: hyperledger-fabric
+        environment:
+            - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+            - FABRIC_CA_SERVER_CA_NAME=ca-examiners
+            - FABRIC_CA_SERVER_TLS_ENABLED=true
+            - FABRIC_CA_SERVER_PORT=7054
+        ports:
+            - "7054:7054"
+        command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+        volumes:
+            - ../organizations/fabric-ca/examiners:/etc/hyperledger/fabric-ca-server
+        container_name: ca_examiners
+        networks:
+            - test
+
+    ca_students:
+        image: hyperledger/fabric-ca:latest
+        labels:
+            service: hyperledger-fabric
+        environment:
+            - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+            - FABRIC_CA_SERVER_CA_NAME=ca-students
+            - FABRIC_CA_SERVER_TLS_ENABLED=true
+            - FABRIC_CA_SERVER_PORT=8054
+        ports:
+            - "8054:8054"
+        command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+        volumes:
+            - ../organizations/fabric-ca/students:/etc/hyperledger/fabric-ca-server
+        container_name: ca_students
+        networks:
+            - test
+
+    ca_orderer:
+        image: hyperledger/fabric-ca:latest
+        labels:
+            service: hyperledger-fabric
+        environment:
+            - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+            - FABRIC_CA_SERVER_CA_NAME=ca-orderer
+            - FABRIC_CA_SERVER_TLS_ENABLED=true
+            - FABRIC_CA_SERVER_PORT=9054
+        ports:
+            - "9054:9054"
+        command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+        volumes:
+            - ../organizations/fabric-ca/ordererOrg:/etc/hyperledger/fabric-ca-server
+        container_name: ca_orderer
+        networks:
+            - test
