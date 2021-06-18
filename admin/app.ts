@@ -100,6 +100,12 @@ app.post('/examiners', async (req: Request, res: Response) => {
           [{
             name: 'Name',
             value: name,
+            ecert: true,
+          },
+          {
+            name: 'Email',
+            value: username,
+            ecert: true,
           }],
         );
         const mail: Mail.Options = {

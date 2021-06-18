@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-import FabricCAServices from 'fabric-ca-client';
+import FabricCAServices, { IAttributeRequest } from 'fabric-ca-client';
 import { Identity } from 'fabric-network';
 
 const orgMspId = 'ExaminersMSP';
@@ -32,12 +32,14 @@ const enrollUser = async (
   caClient: FabricCAServices,
   userId: string,
   secret: string,
+  attributes?: IAttributeRequest[],
 ): Promise<Identity> => {
   // Check to see if we've already enrolled the user
 
   const enrollment = await caClient.enroll({
     enrollmentID: userId,
     enrollmentSecret: secret,
+    attr_reqs: attributes,
   });
   const x509Identity = {
     credentials: {

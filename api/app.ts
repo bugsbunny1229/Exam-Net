@@ -1,5 +1,5 @@
 import cors, { CorsOptions } from 'cors';
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import storage from 'node-persist';
 import isAuth from './middleware/auth';
@@ -16,33 +16,39 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.static('public'));
 app.use(express.json());
-app.use(express.urlencoded({
-  extended: true,
-}));
+app.use(
+  express.urlencoded({
+    extended: true,
+  }),
+);
 
 const ccp = buildCCPExaminers();
 // build an instance of the fabric ca services client based on
 // the information in the network configuration
-const caClient = buildCAClient(
-  ccp,
-  'ca.examiners.iiitm.com',
-);
+const caClient = buildCAClient(ccp, 'ca.examiners.iiitm.com');
 
 const authMiddleware = async (
-  req: Request,
-  res: Response,
-  next: Function,
+  req: Request, res: Response, next: NextFunction,
 ) => isAuth(req, res, next, ccp);
 
 app.post('/', async (req: Request, res: Response) => {
-  const { username, secret }: { username: string, secret: string } = req.body;
+  const { name, username, secret }: { name: string, username: string; secret: string } = req.body;
 
-  if (username && secret) {
+  if (name && username && secret) {
     // setup the wallet to hold the credentials of the application user
     const isEnrolled: Boolean = await storage.getItem(username);
     if (!isEnrolled) {
       try {
-        const identity = await enrollUser(caClient, username, secret);
+        const identity = await enrollUser(caClient, username, secret, [
+          {
+            name: 'Name',
+            optional: false,
+          },
+          {
+            name: 'Email',
+            optional: false,
+          },
+        ]);
         res.json({ identity: JSON.stringify(identity) });
         await storage.updateItem(username, true);
       } catch (err) {
@@ -52,7 +58,7 @@ app.post('/', async (req: Request, res: Response) => {
       res.status(409).json({ error: 'User already enrolled' });
     }
   } else {
-    res.status(401).json({ error: 'Username and secret are required' });
+    res.status(401).json({ error: 'Name, username and secret are required' });
   }
 });
 

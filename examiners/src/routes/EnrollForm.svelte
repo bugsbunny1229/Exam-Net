@@ -1,5 +1,6 @@
 <script lang="ts">
     let username: string;
+    let name: string;
     let secret: string;
     let loading: Boolean = false;
 
@@ -10,7 +11,7 @@
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ username, secret }),
+            body: JSON.stringify({ name, username, secret }),
         });
 
         if (res.ok) {
@@ -36,6 +37,7 @@
 {:else}
     <p>Enroll</p>
     <form on:submit|preventDefault={onEnroll}>
+        <input type="text" placeholder="name" bind:value={name} required />
         <input
             type="email"
             placeholder="username"

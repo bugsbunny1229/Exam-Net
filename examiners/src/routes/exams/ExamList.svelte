@@ -26,15 +26,15 @@
             const examArr: Record<string, any>[] = apiRes.exams;
             console.log(apiRes.exams);
             exams = examArr.map<Exam>((e) => ({
-                ID: e.Record.ID,
-                Date: new Date(e.Record.Date),
-                Duration: e.Record.Duration,
-                Title: e.Record.Title,
-                Subject: e.Record.Subject,
-                Live: e.Record.Live == "1",
-                Examiner: e.Record.Examiner,
-                Password: e.Record.Password,
-                Address: e.Record.Address,
+                ID: e.Exam.ID,
+                Date: new Date(e.Exam.Date),
+                Duration: e.Exam.Duration,
+                Title: e.Exam.Title,
+                Subject: e.Exam.Subject,
+                Live: e.Exam.Live == "1",
+                Examiner: e.Exam.Examiner,
+                Password: e.Exam.Password,
+                Address: e.Exam.Address,
             }));
         } else {
             const r = await res.json();
@@ -58,7 +58,6 @@
                 <th>Subject</th>
                 <th>Live</th>
                 <th>Examiner</th>
-                <th>Schedule</th>
             </tr>
             {#each exams as exam}
                 <tr>
