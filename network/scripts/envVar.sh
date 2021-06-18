@@ -14,7 +14,6 @@ export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/organizations/ordererOrganizations/iiitm.com/orderers/orderer.iiitm.com/msp/tlscacerts/tlsca.iiitm.com-cert.pem
 export PEER0_EXAMINERS_CA=${PWD}/organizations/peerOrganizations/examiners.iiitm.com/peers/peer0.examiners.iiitm.com/tls/ca.crt
 export PEER0_STUDENTS_CA=${PWD}/organizations/peerOrganizations/students.iiitm.com/peers/peer0.students.iiitm.com/tls/ca.crt
-export PEER0_ORG3_CA=${PWD}/organizations/peerOrganizations/org3.iiitm.com/peers/peer0.org3.iiitm.com/tls/ca.crt
 export ORDERER_ADMIN_TLS_SIGN_CERT=${PWD}/organizations/ordererOrganizations/iiitm.com/orderers/orderer.iiitm.com/tls/server.crt
 export ORDERER_ADMIN_TLS_PRIVATE_KEY=${PWD}/organizations/ordererOrganizations/iiitm.com/orderers/orderer.iiitm.com/tls/server.key
 
@@ -37,12 +36,6 @@ setGlobals() {
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_STUDENTS_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/students.iiitm.com/users/Admin@students.iiitm.com/msp
     export CORE_PEER_ADDRESS=localhost:9051
-
-  elif [ $USING_ORG -eq 3 ]; then
-    export CORE_PEER_LOCALMSPID="Org3MSP"
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG3_CA
-    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org3.iiitm.com/users/Admin@org3.iiitm.com/msp
-    export CORE_PEER_ADDRESS=localhost:11051
   else
     errorln "ORG Unknown"
   fi
@@ -66,8 +59,6 @@ setGlobalsCLI() {
     export CORE_PEER_ADDRESS=peer0.examiners.iiitm.com:7051
   elif [ $USING_ORG -eq 2 ]; then
     export CORE_PEER_ADDRESS=peer0.students.iiitm.com:9051
-  elif [ $USING_ORG -eq 3 ]; then
-    export CORE_PEER_ADDRESS=peer0.org3.iiitm.com:11051
   else
     errorln "ORG Unknown"
   fi
