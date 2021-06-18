@@ -10,8 +10,7 @@
         "sourceMap": true
     },
     "include": [
-        "./src/**/*"
-, "models/exam.ts"    ],
+        "./src/**/*"],
     "exclude": [
         "./src/**/*.spec.ts"
     ]

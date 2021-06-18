@@ -3,12 +3,12 @@
  */
 
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
-import { Exam } from '../models/exam';
+import { Exam } from './models/exam';
 
 @Info({ title: 'ExamContract', description: 'Smart contract for creating/updating/cancelling exams' })
 export class ExamContract extends Contract {
     @Transaction()
-    public async CreateExam(ctx: Context, id: string, examiner: string, title: string, subject: string, date: string, duration: number, password: string, address: string, live: string = '1'): Promise<void> {
+    public async CreateExam(ctx: Context, id: string, examiner: string, title: string, subject: string, date: string, duration: number, password: string, address: string, live: string = '0'): Promise<void> {
         const exam: Exam = {
             ID: id,
             Examiner: examiner,
@@ -28,20 +28,19 @@ export class ExamContract extends Contract {
     public async FetchExam(ctx: Context, id: string): Promise<string> {
         const exam = await ctx.stub.getState(id);
         if (!exam || exam.length === 0) {
-            throw new Error(`The asset ${id} does not exist`);
+            throw new Error(`The exam ${id} does not exist`);
         }
         return exam.toString();
     }
 
     // UpdateAsset updates an existing asset in the world state with provided parameters.
     @Transaction()
-    public async UpdateExam(ctx: Context, id: string, examiner: string, title: string, subject: string, date: string, duration: number, password: string, address: string, live: string = '1'): Promise<void> {
+    public async UpdateExam(ctx: Context, id: string, examiner: string, title: string, subject: string, date: string, duration: number, password: string, address: string, live: string = '0'): Promise<void> {
         const exists = await this.ExamExists(ctx, id);
         if (!exists) {
             throw new Error(`The exam ${id} does not exist`);
         }
-
-        if (ctx.clientIdentity.getID() == examiner) {
+        if (ctx.clientIdentity.assertAttributeValue('Email', examiner)) {
             const updatedExam: Exam = {
                 ID: id,
                 Examiner: examiner,
@@ -55,9 +54,21 @@ export class ExamContract extends Contract {
             }
             return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedExam)));
         } else {
-            throw new Error('You are not the examiner for this exam');
+            throw new Error(`You are not the examiner for this exam: ${ctx.clientIdentity.getAttributeValue('Email')} ${examiner}`);
         }
     }
+
+    @Transaction()
+    public async ScheduleExam(ctx: Context, id: string): Promise<void> {
+        const exists = await this.ExamExists(ctx, id);
+        if (!exists) {
+            throw new Error(`The exam ${id} does not exist`);
+        }
+        const examString: string = await this.FetchExam(ctx, id);
+        const exam: Exam = JSON.parse(examString);
+        await this.UpdateExam(ctx, id, exam.Examiner, exam.Title, exam.Subject, exam.Date, exam.Duration, exam.Password, exam.Address, '1');
+    }
+
 
     @Transaction()
     public async CancelExam(ctx: Context, id: string): Promise<void> {
@@ -79,10 +90,10 @@ export class ExamContract extends Contract {
         }
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
-        if (ctx.clientIdentity.getID() == exam.Examiner) {
+        if (ctx.clientIdentity.assertAttributeValue('Email', exam.Examiner)) {
             return ctx.stub.deleteState(id);
         } else {
-            throw new Error('You are not the examiner for this exam');
+            throw new Error(`You are not the examiner for this exam: ${ctx.clientIdentity.getAttributeValue('Email')} ${exam.Examiner}`);
         }
     }
 

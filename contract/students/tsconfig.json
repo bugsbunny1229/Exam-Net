@@ -11,7 +11,7 @@
     },
     "include": [
         "./src/**/*"
-, "models/exam.ts"    ],
+      ],
     "exclude": [
         "./src/**/*.spec.ts"
     ]

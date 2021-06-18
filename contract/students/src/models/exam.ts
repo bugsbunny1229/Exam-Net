@@ -15,9 +15,6 @@ export class Exam {
     public Subject: string;
 
     @Property()
-    public Live?: string = '1';
-
-    @Property()
     public Date: string;
 
     @Property()
