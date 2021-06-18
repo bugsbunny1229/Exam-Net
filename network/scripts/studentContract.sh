@@ -4,7 +4,7 @@ source scripts/utils.sh
 
 CHANNEL_NAME="mainchannel"
 CC_NAME="studentcontract"
-CC_SRC_PATH="/home/harsh/Development/examnet/contract/students"
+CC_SRC_PATH="$(dirname $(dirname $(dirname $(realpath $0)) ))/contract/students"
 CC_SRC_LANGUAGE="typescript"
 CC_VERSION=${5:-"1.0"}
 CC_SEQUENCE=${6:-"1"}

@@ -4,7 +4,7 @@ source scripts/utils.sh
 
 CHANNEL_NAME="examinerchannel"
 CC_NAME="examinercontract"
-CC_SRC_PATH="/home/harsh/Development/examnet/contract/examiners"
+CC_SRC_PATH="$(dirname $(dirname $(dirname $(realpath $0)) ))/contract/examiners"
 CC_SRC_LANGUAGE="typescript"
 CC_VERSION=${5:-"1.0"}
 CC_SEQUENCE=${6:-"1"}
@@ -78,7 +78,6 @@ elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
 
   infoln "Compiling TypeScript code into JavaScript..."
   pushd $CC_SRC_PATH
-  nvm use 14.13
   npm install
   npm run build
   popd
