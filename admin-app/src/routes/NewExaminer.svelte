@@ -31,7 +31,7 @@
             const reader = new FileReader();
             reader.addEventListener("load", async (event) => {
                 identityString = event.target.result as string;
-                const res = await fetch("http://localhost:8080/examiners/", {
+                const res = await fetch("http://localhost:8080/register/examiners/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
