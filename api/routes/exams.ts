@@ -1,8 +1,9 @@
-import express, {
+import { hash } from 'bcrypt';
+import {
   Router, Request, Response, NextFunction,
 } from 'express';
 
-const examRouter: Router = express.Router();
+const examRouter: Router = Router();
 
 examRouter.post('/', async (req: Request, res: Response) => {
   try {
@@ -39,6 +40,7 @@ examRouter.post('/new', async (req: Request, res: Response) => {
 
     const live: boolean = req.body.live ?? false;
     if (title && subject && date && duration && password && address) {
+      const passwordHash = await hash(password, 12);
       const paperID: string = Buffer.from(Math.random().toString())
         .toString('base64')
         .substring(3, 24);
@@ -50,7 +52,7 @@ examRouter.post('/new', async (req: Request, res: Response) => {
         subject,
         date,
         duration.toString(),
-        password,
+        passwordHash,
         address,
         live ? '1' : '0',
       );

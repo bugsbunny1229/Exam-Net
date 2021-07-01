@@ -14,6 +14,14 @@
         console.log(filename);
     };
 
+    const fireError = (err) =>
+        Swal.fire({
+            title: "Error!",
+            text: err,
+            icon: "error",
+            confirmButtonText: "Ok",
+        });
+
     const onSubmit = async () => {
         loading = true;
         try {
@@ -40,22 +48,12 @@
                 } else {
                     const r = await res.json();
                     error = `Error occurred: ${r.error}`;
-                    Swal.fire({
-                        title: "Error!",
-                        text: error,
-                        icon: "error",
-                        confirmButtonText: "Ok",
-                    });
+                    fireError(error);
                 }
             });
             reader.readAsText(identity);
         } catch (e) {
-            Swal.fire({
-                title: "Error!",
-                text: e,
-                icon: "error",
-                confirmButtonText: "Ok",
-            });
+            fireError(e);
         } finally {
             loading = false;
         }

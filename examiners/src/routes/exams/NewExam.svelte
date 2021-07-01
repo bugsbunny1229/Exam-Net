@@ -3,79 +3,92 @@
     import { usernameStore, identityStore } from "../../stores/identity";
 
     let isComplete: boolean = false;
-    // let cryptoLoaded: boolean = false;
     let isLoading: boolean = false;
     let progressText: string = "Loading...";
     const username: string = get(usernameStore);
     const identityString: string = get(identityStore);
-    let key: string;
+    let password: string;
     let paper: FileList;
     let title: string;
     let subject: string;
     let date: string;
     let duration: number;
 
-    const onSubmit = async () => {
-        isLoading = true;
-        // if (cryptoLoaded) {
-        const formData = new FormData();
-        progressText = "Generating secure encryption key...";
-        const paperBuffer: ArrayBuffer = await paper[0].arrayBuffer();
-        const encryptionKey: CryptoKey = await crypto.subtle.generateKey(
-            {
-                name: "AES-GCM",
-                length: 256,
-            },
-            true,
-            ["encrypt", "decrypt"]
-        );
-        const secretKey: JsonWebKey = await crypto.subtle.exportKey(
-            "jwk",
-            encryptionKey
-        );
-        key = secretKey.k;
-        progressText = "Encrypting file...";
+    const generatePassword = (): string => {
+        var buffer = new Uint8Array(12);
+        crypto.getRandomValues(buffer);
+        return btoa(String.fromCharCode.apply(null, buffer));
+    };
 
-        // const paperWordArray =
-        //     CryptoJS.lib.WordArray.create(paperBuffer);
-        // const encryptedFileString = CryptoJS.AES.encrypt(
-        //     paperWordArray,
-        //     secretKey.k
-        // ).toString();
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const encryptedBuffer: ArrayBuffer = await crypto.subtle.encrypt(
+    const onSubmit = async (): Promise<void> => {
+        isLoading = true;
+        progressText = "Reading file...";
+        let paperBuffer = await paper[0].arrayBuffer();
+        paperBuffer = new Uint8Array(paperBuffer);
+
+        progressText = "Generating secure encryption key...";
+        const PBKDF2_ITERATIONS = 10000;
+        password = generatePassword();
+        const passwordBytes = new TextEncoder().encode(password);
+        const salt = crypto.getRandomValues(new Uint8Array(8));
+        const passwordKey = await crypto.subtle.importKey(
+            "raw",
+            passwordBytes,
+            { name: "PBKDF2" },
+            false,
+            ["deriveBits"]
+        );
+
+        let pbkdf2DerivedBytes: ArrayBuffer = await crypto.subtle.deriveBits(
             {
-                name: "AES-GCM",
-                iv,
+                name: "PBKDF2",
+                salt,
+                iterations: PBKDF2_ITERATIONS,
+                hash: "SHA-256",
             },
+            passwordKey,
+            384
+        );
+
+        pbkdf2DerivedBytes = new Uint8Array(pbkdf2DerivedBytes);
+
+        const keyBytes: ArrayBuffer = pbkdf2DerivedBytes.slice(0, 32);
+        const ivBytes: ArrayBuffer = pbkdf2DerivedBytes.slice(32);
+
+        const encryptionKey: CryptoKey = await window.crypto.subtle.importKey(
+            "raw",
+            keyBytes,
+            { name: "AES-CBC", length: 256 },
+            false,
+            ["encrypt"]
+        );
+
+        progressText = "Encrypting file...";
+        let encryptedBytes: any = await crypto.subtle.encrypt(
+            { name: "AES-CBC", iv: ivBytes },
             encryptionKey,
             paperBuffer
         );
-        const decoder = new TextDecoder();
-        const encryptedFileString = decoder.decode(encryptedBuffer);
+
+        encryptedBytes = new Uint8Array(encryptedBytes);
+        const encryptedFile = new Uint8Array(encryptedBytes.length + 16);
+        encryptedFile.set(new TextEncoder().encode("Salted__"));
+        encryptedFile.set(salt, 8);
+        encryptedFile.set(encryptedBytes, 16);
+
         progressText = "Uploading file...";
-        formData.append(
-            paper[0].name,
-            new Blob([encryptedFileString], {
-                type: "text/plain",
-            }),
-            paper[0].name
-        );
+        const body = new FormData();
+        body.append(paper[0].name, new Blob([encryptedFile]), paper[0].name);
+
         const infuraRes = await fetch(
             "https://ipfs.infura.io:5001/api/v0/add?quieter=true",
             {
                 method: "POST",
-                body: formData,
+                body,
             }
         );
+
         const infuraRef = await infuraRes.json();
-        const msgUint8 = new TextEncoder().encode(secretKey.k); // encode as (utf-8) Uint8Array
-        const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8); // hash the message
-        const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
-        const hashHex = hashArray
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join(""); // convert bytes to hex string
-        const password = hashHex;
 
         progressText =
             "Authenticating with CA and storing details on ledger...";
@@ -98,33 +111,19 @@
         if (res.ok) {
             progressText = "Done...";
             isComplete = true;
-            console.log(await res.json());
         } else {
             progressText = "Error occurred...";
             const r = await res.json();
             alert(`Error occurred: ${r.error}`);
         }
         isLoading = false;
-        // }
     };
-
-    // const loadCrypto = () => (cryptoLoaded = true);
 </script>
-
-<!-- <svelte:head>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
-        integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-        on:load={loadCrypto}>
-    </script>
-</svelte:head> -->
 
 {#if isLoading}
     <p>{progressText}</p>
 {:else if isComplete}
-    <p>Your exam password: {key}</p>
+    <p>Your exam password: {password}</p>
     <p>
         For security reasons this password is displayed only once. Please store
         this password safely.
