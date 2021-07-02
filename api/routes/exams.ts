@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
+import { fetchAllExams, newExam } from '../controllers/exams/exams';
 import {
-  fetchAllExams,
   fetchExam,
-  newExam,
   scheduleExam,
   cancelExam,
-} from '../controllers/exams';
+  updateExam,
+  deleteExam,
+} from '../controllers/exams/[id]';
 
 const examRouter: Router = Router();
 
@@ -15,7 +16,9 @@ examRouter.param('id', fetchExam);
 
 examRouter
   .route('/:id')
-  .post((_, res: Response) => res.json({ exam: res.locals.exam }));
+  .post((_req, res: Response) => res.json({ exam: res.locals.exam }))
+  .patch(updateExam)
+  .delete(deleteExam);
 
 examRouter.post('/:id/schedule', scheduleExam);
 examRouter.post('/:id/cancel', cancelExam);

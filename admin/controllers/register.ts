@@ -50,7 +50,7 @@ const registerStudents = async (req: Request, res: Response) => {
     caClientStudents,
     wallet,
     username,
-    'students.students',
+    'students',
     [{
       name: 'Name',
       value: name,
