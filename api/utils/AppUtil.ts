@@ -29,7 +29,7 @@ const buildCCPExaminers = (): Record<string, any> => {
 const buildCCPStudents = (): Record<string, any> => {
   // load the common connection configuration file
   const ccpPath = path.resolve(
-    '../../network/organizations/peerOrganizations/students.iiitm.com/connection-students.json',
+    '../network/organizations/peerOrganizations/students.iiitm.com/connection-students.json',
   );
   const fileExists = fs.existsSync(ccpPath);
   if (!fileExists) {
