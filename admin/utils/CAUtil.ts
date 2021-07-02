@@ -108,6 +108,7 @@ const registerUser = async (
       enrollmentID: userId,
       role: 'client',
       attrs: attributes,
+      maxEnrollments: 1,
     },
     adminUser,
   );

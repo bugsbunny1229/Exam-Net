@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import nodemailer from 'nodemailer';
 import storage from 'node-persist';
 import indexRouter from './routes';
-import registerRouter from './routes/enroll';
+import registerRouter from './routes/register';
 import { buildCAClient } from './utils/CAUtil';
 import { buildCCPExaminers, buildCCPStudents } from './utils/AppUtil';
 

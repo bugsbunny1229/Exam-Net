@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import {
   Gateway, GatewayOptions, Identity, Wallet, Contract,
 } from 'fabric-network';
@@ -12,7 +12,7 @@ const studentChaincodeName = 'studentcontract';
 const isAuth = async (
   req: Request,
   res: Response,
-  next: Function,
+  next: NextFunction,
   ccp: Record<string, any>,
 ) => {
   const { username, id }: { username: string, id: string } = req.body;

@@ -3,10 +3,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+import { Response } from 'express';
 import FabricCAServices, { IAttributeRequest } from 'fabric-ca-client';
-import { Identity } from 'fabric-network';
-
-const orgMspId = 'ExaminersMSP';
+import { Identity, X509Identity } from 'fabric-network';
+import storage from 'node-persist';
 /**
  *
  * @param {*} ccp
@@ -30,6 +30,7 @@ const buildCAClient = (
 
 const enrollUser = async (
   caClient: FabricCAServices,
+  mspId: string,
   userId: string,
   secret: string,
   attributes?: IAttributeRequest[],
@@ -41,12 +42,12 @@ const enrollUser = async (
     enrollmentSecret: secret,
     attr_reqs: attributes,
   });
-  const x509Identity = {
+  const x509Identity: X509Identity = {
     credentials: {
       certificate: enrollment.certificate,
       privateKey: enrollment.key.toBytes(),
     },
-    mspId: orgMspId,
+    mspId,
     type: 'X.509',
   };
   console.log(
@@ -55,4 +56,27 @@ const enrollUser = async (
   return x509Identity;
 };
 
-export { buildCAClient, enrollUser };
+const issueIdentity = async (
+  res: Response,
+  username: string,
+  secret: string,
+  caClient: FabricCAServices,
+  mspId: string,
+  attributes: FabricCAServices.IAttributeRequest[],
+) => {
+  // setup the wallet to hold the credentials of the application user
+  const isEnrolled: Boolean = await storage.getItem(username);
+  if (!isEnrolled) {
+    try {
+      const identity = await enrollUser(caClient, mspId, username, secret, attributes);
+      res.json({ identity: JSON.stringify(identity) });
+      await storage.updateItem(username, true);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  } else {
+    res.status(409).json({ error: 'User already enrolled' });
+  }
+};
+
+export { buildCAClient, enrollUser, issueIdentity };

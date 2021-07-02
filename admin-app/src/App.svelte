@@ -2,6 +2,7 @@
     import { Router, Link, Route } from "svelte-navigator";
     import Login from "./routes/Login.svelte";
     import NewExaminer from "./routes/NewExaminer.svelte";
+    import NewStudent from "./routes/NewStudent.svelte";
     let open = true;
     matchMedia("(min-width: 1024px)").addEventListener("change", (mq) => {
         if (mq.matches) {
@@ -67,14 +68,23 @@
                                     Add Examiner
                                 </Link>
                             </li>
+                            <li class="nav-item">
+                                <Link
+                                    class="px-3 py-2 flex items-center text-md uppercase font-bold leading-snug text-white hover:opacity-75"
+                                    to="/students"
+                                >
+                                    Add Student
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                 {/if}
             </div>
         </nav>
         <main class="flex-grow mx-1">
-            <Route path="/"><Login /></Route>
-            <Route path="/examiners"><NewExaminer /></Route>
+            <Route path="/" component={Login} />
+            <Route path="/examiners" component={NewExaminer} />
+            <Route path="/students" component={NewStudent} />
         </main>
     </Router>
 </body>
@@ -99,21 +109,15 @@
         );
         background-size: 200% 110%;
         background-repeat: no-repeat;
-        animation: gradient 20s ease infinite;
+        animation: gradient 40s ease infinite;
     }
 
     @keyframes gradient {
         0% {
             background-position: 0% 50%;
         }
-        25% {
-            background-position: 50% 50%;
-        }
         50% {
             background-position: 90% 50%;
-        }
-        75% {
-            background-position: 50% 50%;
         }
         100% {
             background-position: 0% 50%;

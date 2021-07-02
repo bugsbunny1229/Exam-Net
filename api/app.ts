@@ -3,9 +3,10 @@ import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import storage from 'node-persist';
 import isAuth from './middleware/auth';
+import enrollRouter from './routes/enroll';
 import examRouter from './routes/exams';
-import { buildCAClient, enrollUser } from './utils/CAUtil';
-import { buildCCPExaminers } from './utils/AppUtil';
+import { buildCAClient } from './utils/CAUtil';
+import { buildCCPExaminers, buildCCPStudents } from './utils/AppUtil';
 
 const app = express();
 const PORT = 10000;
@@ -22,46 +23,18 @@ app.use(
   }),
 );
 
-const ccp = buildCCPExaminers();
+const ccpExaminers = buildCCPExaminers();
+const ccpStudents = buildCCPStudents();
 // build an instance of the fabric ca services client based on
 // the information in the network configuration
-const caClient = buildCAClient(ccp, 'ca.examiners.iiitm.com');
+const caClientExaminers = buildCAClient(ccpExaminers, 'ca.examiners.iiitm.com');
+const caClientStudents = buildCAClient(ccpStudents, 'ca.students.iiitm.com');
 
 const authMiddleware = async (
   req: Request, res: Response, next: NextFunction,
-) => isAuth(req, res, next, ccp);
+) => isAuth(req, res, next, ccpExaminers);
 
-app.post('/', async (req: Request, res: Response) => {
-  const { name, username, secret }: { name: string, username: string; secret: string } = req.body;
-
-  if (name && username && secret) {
-    // setup the wallet to hold the credentials of the application user
-    const isEnrolled: Boolean = await storage.getItem(username);
-    if (!isEnrolled) {
-      try {
-        const identity = await enrollUser(caClient, username, secret, [
-          {
-            name: 'Name',
-            optional: false,
-          },
-          {
-            name: 'Email',
-            optional: false,
-          },
-        ]);
-        res.json({ identity: JSON.stringify(identity) });
-        await storage.updateItem(username, true);
-      } catch (err) {
-        res.status(500).json({ error: err.message });
-      }
-    } else {
-      res.status(409).json({ error: 'User already enrolled' });
-    }
-  } else {
-    res.status(401).json({ error: 'Name, username and secret are required' });
-  }
-});
-
+app.use('/enroll', enrollRouter);
 app.use('/exams', authMiddleware, examRouter);
 app.get('*', (req: Request, res: Response) => res.status(404).json({ error: 'Does not exist' }));
 
@@ -78,4 +51,9 @@ app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
 });
 
-export default ccp;
+export {
+  caClientExaminers,
+  caClientStudents,
+  ccpExaminers,
+  ccpStudents,
+};
