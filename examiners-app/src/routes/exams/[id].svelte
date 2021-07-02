@@ -6,6 +6,7 @@
     export let examId: string;
     let isLoading: boolean = true;
     let exam: Exam;
+    let editMode: boolean = false;
     const username: string = get(usernameStore);
     const identityString: string = get(identityStore);
 
@@ -55,6 +56,26 @@
         isLoading = false;
     };
 
+    const deleteExam = async () => {
+        isLoading = true;
+        const res = await fetch(
+            `http://localhost:10000/exams/${examId}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: identityString,
+                    username,
+                }),
+            }
+        );
+        console.log(await res.json());
+        await fetchData();
+        isLoading = false;
+    };
+
     onMount(fetchData);
 </script>
 
@@ -62,7 +83,7 @@
     {#if isLoading}
         <p>Loading...</p>
     {:else}
-        <h1>All Exams</h1>
+        <h1>Exam: {exam.Title}</h1>
         <table>
             <tr>
                 <th>ID</th>
@@ -74,15 +95,17 @@
                 <th>Examiner</th>
                 <th>Schedule</th>
                 <th>Cancel</th>
+                <th>Delete</th>
+                <th>Edit</th>
             </tr>
             <tr>
-                <td>{exam.ID}</td>
-                <td>{exam.Date}</td>
-                <td>{exam.Duration}</td>
-                <td>{exam.Title}</td>
-                <td>{exam.Subject}</td>
-                <td>{exam.Live ? "Yes" : "No"}</td>
-                <td>{exam.Examiner}</td>
+                <td><input type="text" value="{exam.ID}" readonly={editMode} /></td>
+                <td><input type="datetime" value="{exam.Date.toDateString()}" readonly={editMode} /></td>
+                <td><input type="number" value={exam.Duration} readonly={editMode} /></td>
+                <td><input type="text" value="{exam.Title}" readonly={editMode} /></td>
+                <td><input type="text" value="{exam.Subject}" readonly={editMode} /></td>
+                <td><input type="checkbox" checked={exam.Live} readonly={editMode} /></td>
+                <td><input type="text" value="{exam.Examiner}" readonly={editMode} /></td>
                 <td>
                     <button
                         disabled={exam.Live}
@@ -96,6 +119,12 @@
                         on:click={() => onClick("cancel")}
                     >Cancel Exam
                     </button>
+                </td>
+                <td>
+                    <button on:click={deleteExam}>Delete Exam</button>
+                </td>
+                <td>
+                    <button on:click={() => {editMode = !editMode}}>Edit Exam</button>
                 </td>
             </tr>
         </table>
