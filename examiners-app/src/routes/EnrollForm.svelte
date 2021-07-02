@@ -6,7 +6,7 @@
 
     const onEnroll = async () => {
         loading = true;
-        const res = await fetch("http://localhost:10000/", {
+        const res = await fetch("http://localhost:10000/enroll/examiners", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

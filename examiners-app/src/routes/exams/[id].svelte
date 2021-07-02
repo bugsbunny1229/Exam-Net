@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get } from "svelte/store";
+    import { navigate } from "svelte-navigator";
     import { usernameStore, identityStore } from "../../stores/identity";
 
     export let examId: string;
@@ -72,7 +73,7 @@
             }
         );
         console.log(await res.json());
-        await fetchData();
+        navigate('/exams', { replace: true })
         isLoading = false;
     };
 
@@ -99,13 +100,13 @@
                 <th>Edit</th>
             </tr>
             <tr>
-                <td><input type="text" value="{exam.ID}" readonly={editMode} /></td>
-                <td><input type="datetime" value="{exam.Date.toDateString()}" readonly={editMode} /></td>
-                <td><input type="number" value={exam.Duration} readonly={editMode} /></td>
-                <td><input type="text" value="{exam.Title}" readonly={editMode} /></td>
-                <td><input type="text" value="{exam.Subject}" readonly={editMode} /></td>
-                <td><input type="checkbox" checked={exam.Live} readonly={editMode} /></td>
-                <td><input type="text" value="{exam.Examiner}" readonly={editMode} /></td>
+                <td><input type="text" value="{exam.ID}" readonly={!editMode} /></td>
+                <td><input type="datetime" value="{exam.Date.toDateString()}" readonly={!editMode} /></td>
+                <td><input type="number" value={exam.Duration} readonly={!editMode} /></td>
+                <td><input type="text" value="{exam.Title}" readonly={!editMode} /></td>
+                <td><input type="text" value="{exam.Subject}" readonly={!editMode} /></td>
+                <td><input type="checkbox" checked={exam.Live} disabled={editMode} /></td>
+                <td><input type="text" value="{exam.Examiner}" readonly={!editMode} /></td>
                 <td>
                     <button
                         disabled={exam.Live}
