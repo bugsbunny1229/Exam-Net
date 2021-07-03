@@ -27,7 +27,7 @@
             console.log(apiRes.exams);
             exams = examArr.map<Exam>((e) => ({
                 ID: e.Exam.ID,
-                Date: new Date(e.Exam.Date),
+                Date: e.Exam.Date,
                 Duration: e.Exam.Duration,
                 Title: e.Exam.Title,
                 Subject: e.Exam.Subject,
@@ -62,7 +62,7 @@
             {#each exams as exam}
                 <tr>
                     <td>{exam.ID}</td>
-                    <td>{exam.Date}</td>
+                    <td>{new Date(exam.Date)}</td>
                     <td>{exam.Duration}</td>
                     <td>{exam.Title}</td>
                     <td>{exam.Subject}</td>

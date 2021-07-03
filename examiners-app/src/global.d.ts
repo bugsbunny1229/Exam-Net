@@ -5,7 +5,7 @@ interface Exam {
     Title: string;
     Subject: string;
     Live: boolean;
-    Date: Date;
+    Date: string;
     Duration: number;
     Password: string;
     Address: string;

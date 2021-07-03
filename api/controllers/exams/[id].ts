@@ -1,4 +1,3 @@
-import { hash } from 'bcrypt';
 import { Request, Response, NextFunction } from 'express';
 
 const fetchExam = async (req: Request, res: Response, next: NextFunction) => {
@@ -83,21 +82,20 @@ const updateExam = async (req: Request, res: Response) => {
       subject,
       date,
       duration,
-      password,
-      address,
     }:{
         title: string;
         username: string;
         subject: string;
         date: string;
         duration: number;
-        password: string;
-        address: string;
      } = req.body;
 
-    const live: boolean = req.body.live ?? false;
-    if (title && subject && date && duration && password && address) {
-      const passwordHash = await hash(password, 12);
+    if (title && subject && date && duration) {
+      const currentExamBuf: Buffer = await res.locals.contract.evaluateTransaction(
+        'FetchExam',
+        req.params.id,
+      );
+      const currentExam = JSON.parse(currentExamBuf.toString());
       const paperBuffer: Buffer = await res.locals.contract.submitTransaction(
         'UpdateExam',
         req.params.id,
@@ -106,14 +104,14 @@ const updateExam = async (req: Request, res: Response) => {
         subject,
         date,
         duration.toString(),
-        passwordHash,
-        address,
-        live ? '1' : '0',
+        currentExam.Password,
+        currentExam.Address,
+        currentExam.Live,
       );
       res.json({ message: paperBuffer.toJSON() });
     } else {
       res.status(400).json({
-        error: 'id, title, subject, date, duration, password and file are required',
+        error: 'id, title, subject, date, duration are required',
       });
     }
   } catch (err) {
