@@ -1,3 +1,4 @@
+import { compare } from 'bcrypt';
 import { Request, Response, NextFunction } from 'express';
 
 const fetchExam = async (req: Request, res: Response, next: NextFunction) => {
@@ -14,8 +15,9 @@ const fetchExam = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const scheduleExam = async (_req: Request, res: Response) => {
+const scheduleExam = async (req: Request, res: Response) => {
   try {
+    const { password }: { password: string } = req.body;
     const {
       ID,
       Title,
@@ -27,26 +29,28 @@ const scheduleExam = async (_req: Request, res: Response) => {
       Examiner,
       Live,
     } = res.locals.exam;
-    console.log(res.locals.exam);
-    if (!Live) {
-      const buf = await res.locals.contract.submitTransaction('ScheduleExam', ID);
-      console.log(buf.toJSON());
-
-      const paperBuffer: Buffer = await res.locals.studentContract.submitTransaction(
-        'CreateExam',
-        ID,
-        Examiner,
-        Title,
-        Subject,
-        Date,
-        Duration.toString(),
-        Password,
-        Address,
-      );
-      res.json({ message: paperBuffer.toJSON() });
-    } else {
-      res.json({ message: 'Exam is already live' });
+    if (await compare(password, Password)) {
+      console.log(res.locals.exam);
+      if (!Live) {
+        const buf = await res.locals.contract.submitTransaction('ScheduleExam', ID);
+        console.log(buf.toJSON());
+        const paperBuffer: Buffer = await res.locals.studentContract.submitTransaction(
+          'CreateExam',
+          ID,
+          Examiner,
+          Title,
+          Subject,
+          Date,
+          Duration.toString(),
+          Password,
+          Address,
+        );
+        res.json({ message: paperBuffer.toJSON() });
+      } else {
+        res.json({ message: 'Exam is already live' });
+      }
     }
+    res.status(403).json({ error: 'Invalid password' });
   } catch (err) {
     res.status(500).json({
       error: `Failed to execute transaction: ${err}`,
@@ -82,13 +86,13 @@ const updateExam = async (req: Request, res: Response) => {
       subject,
       date,
       duration,
-    }:{
-        title: string;
-        username: string;
-        subject: string;
-        date: string;
-        duration: number;
-     } = req.body;
+    }: {
+      title: string;
+      username: string;
+      subject: string;
+      date: string;
+      duration: number;
+    } = req.body;
 
     if (title && subject && date && duration) {
       const currentExamBuf: Buffer = await res.locals.contract.evaluateTransaction(
@@ -124,6 +128,7 @@ const updateExam = async (req: Request, res: Response) => {
 const deleteExam = async (req: Request, res: Response) => {
   try {
     const paperBuffer: Buffer = await res.locals.contract.submitTransaction('DeleteExam', req.params.id);
+    await res.locals.studentContract.submitTransaction('DeleteExam', req.params.id);
     res.json({ message: paperBuffer.toJSON() });
   } catch (err) {
     res.status(500).json({

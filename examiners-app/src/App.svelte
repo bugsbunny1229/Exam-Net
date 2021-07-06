@@ -1,7 +1,8 @@
 <script lang="ts">
     import { Router, Link, Route } from "svelte-navigator";
     import EnrollForm from "./routes/EnrollForm.svelte";
-    import ExamDetail from "./routes/exams/[id].svelte";
+    import ExamDetail from "./routes/exams/[id]/[id].svelte";
+    import Schedule from "./routes/exams/[id]/Schedule.svelte";
     import Exams from "./routes/exams/Exams.svelte";
     import Login from "./routes/Login.svelte";
     import New from "./routes/exams/New.svelte";
@@ -18,7 +19,8 @@
         <Route path="/login" component={Login} />
         <Route path="/exams/*">
             <Route path="/" component={Exams} />
-            <Route path="/:id" let:params>
+            <Route path="/:id/*" let:params>
+                <Schedule examId={params.id} />
                 <ExamDetail examId={params.id} />
             </Route>
             <Route path="/new" component={New} />

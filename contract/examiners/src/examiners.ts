@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { compare } from 'bcrypt';
 import {
     Context,
     Contract,
@@ -97,25 +98,28 @@ export class ExamContract extends Contract {
     }
 
     @Transaction()
-    public async ScheduleExam(ctx: Context, id: string): Promise<void> {
+    public async ScheduleExam(ctx: Context, id: string, password: string): Promise<void> {
         const exists = await this.ExamExists(ctx, id);
         if (!exists) {
             throw new Error(`The exam ${id} does not exist`);
         }
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
-        await this.UpdateExam(
-            ctx,
-            id,
-            exam.Examiner,
-            exam.Title,
-            exam.Subject,
-            exam.Date,
-            exam.Duration,
-            exam.Password,
-            exam.Address,
-            "1"
-        );
+        if(await compare(password, exam.Password)){
+            await this.UpdateExam(
+                ctx,
+                id,
+                exam.Examiner,
+                exam.Title,
+                exam.Subject,
+                exam.Date,
+                exam.Duration,
+                exam.Password,
+                exam.Address,
+                "1"
+            );
+        }
+        throw new Error("Invalid password");
     }
 
     @Transaction()

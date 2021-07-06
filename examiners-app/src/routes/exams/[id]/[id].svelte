@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get } from "svelte/store";
-    import { navigate } from "svelte-navigator";
-    import { usernameStore, identityStore } from "../../stores/identity";
+    import { Link, navigate } from "svelte-navigator";
+    import { usernameStore, identityStore } from "../../../stores/identity";
 
     export let examId: string;
     let isLoading: boolean = true;
@@ -45,21 +45,18 @@
         isLoading = false;
     };
 
-    const onClick = async (mode: string) => {
+    const cancelExam = async () => {
         isLoading = true;
-        await fetch(
-            `http://localhost:10000/exams/${examId}/${mode}`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: identityString,
-                    username,
-                }),
-            }
-        );
+        await fetch(`http://localhost:10000/exams/${examId}/cancel`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                id: identityString,
+                username,
+            }),
+        });
         await fetchData();
         isLoading = false;
     };
@@ -99,11 +96,13 @@
         await fetchData();
         isLoading = false;
     };
+    // TODO: add password in request body for API call
 
     onMount(fetchData);
 </script>
 
 <main>
+    <!-- TODO: add password field for scheduling -->
     {#if isLoading}
         <p>Loading...</p>
     {:else}
@@ -165,18 +164,10 @@
                     <input type="text" value={exam.Examiner} readonly />
                 </td>
                 <td>
-                    <button
-                        disabled={exam.Live}
-                        on:click={() => onClick("schedule")}
-                    >
-                        Schedule Exam
-                    </button>
+                    <Link to={`/exams/${examId}/schedule`}>Schedule</Link>
                 </td>
                 <td>
-                    <button
-                        disabled={!exam.Live}
-                        on:click={() => onClick("cancel")}
-                    >
+                    <button disabled={!exam.Live} on:click={cancelExam}>
                         Cancel Exam
                     </button>
                 </td>
