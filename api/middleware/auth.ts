@@ -9,7 +9,7 @@ const mainChannelName = 'mainchannel';
 const chaincodeName = 'examinercontract';
 const studentChaincodeName = 'studentcontract';
 
-const isAuth = async (
+const isExaminerAuth = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -54,4 +54,43 @@ const isAuth = async (
   }
 };
 
-export default isAuth;
+const isStudentAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  ccp: Record<string, any>,
+) => {
+  const { username, id }: { username: string, id: string } = req.body;
+  if (username && id) {
+    try {
+      const identity: Identity = JSON.parse(JSON.parse(id).identity);
+      let wallet: Wallet = await buildWallet();
+      await wallet.put(username, identity);
+      try {
+        const gateway = new Gateway();
+
+        const gatewayOpts: GatewayOptions = {
+          wallet,
+          identity: username,
+          discovery: { enabled: true, asLocalhost: true },
+          // using asLocalhost as this gateway is using a fabric network deployed locally
+        };
+        wallet = null;
+        await gateway.connect(ccp, gatewayOpts);
+
+        const mainNetwork = await gateway.getNetwork(mainChannelName);
+        const studentContract: Contract = mainNetwork.getContract(studentChaincodeName);
+        res.locals.studentContract = studentContract;
+        return next();
+      } catch (err) {
+        return res.status(401).send(`Failed to connect to gateway: ${err.message}`);
+      }
+    } catch (err2) {
+      return res.status(400).json({ error: `Invalid identity: ${err2.message}` });
+    }
+  } else {
+    return res.status(400).json({ error: 'Username and identity are both required' });
+  }
+};
+
+export { isExaminerAuth, isStudentAuth };

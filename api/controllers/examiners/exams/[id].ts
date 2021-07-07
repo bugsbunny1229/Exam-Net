@@ -1,5 +1,9 @@
 import { compare } from 'bcrypt';
 import { Request, Response, NextFunction } from 'express';
+import { scheduleJob, scheduledJobs } from 'node-schedule';
+import nodemailer from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
+import { pool } from '../../../app';
 
 const fetchExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -22,30 +26,59 @@ const scheduleExam = async (req: Request, res: Response) => {
       ID,
       Title,
       Subject,
-      Date,
       Duration,
       Password,
       Address,
       Examiner,
       Live,
     } = res.locals.exam;
+    const date = res.locals.exam.Date;
     if (await compare(password, Password)) {
-      console.log(res.locals.exam);
       if (!Live) {
-        const buf = await res.locals.contract.submitTransaction('ScheduleExam', ID);
-        console.log(buf.toJSON());
-        const paperBuffer: Buffer = await res.locals.studentContract.submitTransaction(
+        await res.locals.contract.submitTransaction('ScheduleExam', ID);
+        await res.locals.studentContract.submitTransaction(
           'CreateExam',
           ID,
           Examiner,
           Title,
           Subject,
-          Date,
+          date,
           Duration.toString(),
           Password,
           Address,
         );
-        res.json({ message: paperBuffer.toJSON() });
+        const emails = await pool.query('SELECT email FROM STUDENTS');
+        if (emails.rowCount) {
+          scheduleJob(ID, new Date(date), () => {
+            const transporter = nodemailer.createTransport({
+              host: 'smtp.gmail.com',
+              port: 465,
+              secure: true,
+              auth: {
+                type: 'OAuth2',
+                user: process.env.GMAIL_USERNAME,
+                clientId: process.env.CLIENT_ID,
+                clientSecret: process.env.CLIENT_SECRET,
+                refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+                accessToken: process.env.OAUTH_ACCESS_TOKEN,
+              },
+            });
+            const mail: Mail.Options = {
+              from: 'ExamNet <harshhsharma23@gmail.com>',
+              to: emails.rows.map((e) => e.email),
+              subject: 'Exam Password',
+              text: `Your exam password is: ${password}`,
+              html: `Your exam password is: ${password}`,
+            };
+            transporter.sendMail(mail, (error, info) => {
+              if (error) {
+                console.error(error);
+              } else {
+                console.log({ message: `Mail sent: ${info.messageId}` });
+              }
+            });
+          });
+        }
       } else {
         res.json({ message: 'Exam is already live' });
       }
@@ -67,6 +100,7 @@ const cancelExam = async (_req: Request, res: Response) => {
     if (Live) {
       await res.locals.contract.submitTransaction('CancelExam', ID);
       await res.locals.studentContract.submitTransaction('DeleteExam', ID);
+      scheduledJobs[ID].cancel();
       res.json({ message: 'Cancelled' });
     } else {
       res.json({ message: 'Exam is already cancelled' });

@@ -1,12 +1,12 @@
 import { Router, Response } from 'express';
-import { fetchAllExams, newExam } from '../controllers/exams/exams';
+import { fetchAllExams, newExam } from '../controllers/examiners/exams/exams';
 import {
   fetchExam,
   scheduleExam,
   cancelExam,
   updateExam,
   deleteExam,
-} from '../controllers/exams/[id]';
+} from '../controllers/examiners/exams/[id]';
 
 const examRouter: Router = Router();
 

@@ -6,7 +6,6 @@
 import { Response } from 'express';
 import FabricCAServices, { IAttributeRequest } from 'fabric-ca-client';
 import { Identity, X509Identity } from 'fabric-network';
-import storage from 'node-persist';
 /**
  *
  * @param {*} ccp
@@ -65,17 +64,11 @@ const issueIdentity = async (
   attributes: FabricCAServices.IAttributeRequest[],
 ) => {
   // setup the wallet to hold the credentials of the application user
-  const isEnrolled: Boolean = await storage.getItem(username);
-  if (!isEnrolled) {
-    try {
-      const identity = await enrollUser(caClient, mspId, username, secret, attributes);
-      res.json({ identity: JSON.stringify(identity) });
-      await storage.updateItem(username, true);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  } else {
-    res.status(409).json({ error: 'User already enrolled' });
+  try {
+    const identity = await enrollUser(caClient, mspId, username, secret, attributes);
+    res.json({ identity: JSON.stringify(identity) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
