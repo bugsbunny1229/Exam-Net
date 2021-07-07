@@ -92,7 +92,7 @@
 
         progressText =
             "Authenticating with CA and storing details on ledger...";
-        const res = await fetch("http://localhost:10000/exams/new", {
+        const res = await fetch("http://localhost:10000/examiners/exams/new", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

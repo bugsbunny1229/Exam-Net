@@ -20,8 +20,12 @@
         <Route path="/exams/*">
             <Route path="/" component={Exams} />
             <Route path="/:id/*" let:params>
-                <Schedule examId={params.id} />
-                <ExamDetail examId={params.id} />
+                <Route path="/schedule">
+                    <Schedule examId={params.id} />
+                </Route>
+                <Route path="/">
+                    <ExamDetail examId={params.id} />
+                </Route>
             </Route>
             <Route path="/new" component={New} />
         </Route>

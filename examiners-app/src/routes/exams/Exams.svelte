@@ -11,7 +11,7 @@
 
     onMount(async () => {
         isLoading = true;
-        const res = await fetch("http://localhost:10000/exams/", {
+        const res = await fetch("http://localhost:10000/examiners/exams/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

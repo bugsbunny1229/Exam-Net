@@ -6,12 +6,12 @@
     export let examId: string;
     const username: string = get(usernameStore);
     const identityString: string = get(identityStore);
-    let isLoading: boolean = true;
+    let isLoading: boolean = false;
     let password: string;
 
     const onSchedule = async () => {
         isLoading = true;
-        await fetch(`http://localhost:10000/exams/${examId}/schedule`, {
+        await fetch(`http://localhost:10000/examiners/exams/${examId}/schedule`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -16,7 +16,7 @@
     const identityString: string = get(identityStore);
 
     const fetchData = async () => {
-        const res = await fetch(`http://localhost:10000/exams/${examId}`, {
+        const res = await fetch(`http://localhost:10000/examiners/exams/${examId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -47,7 +47,7 @@
 
     const cancelExam = async () => {
         isLoading = true;
-        await fetch(`http://localhost:10000/exams/${examId}/cancel`, {
+        await fetch(`http://localhost:10000/examiners/exams/${examId}/cancel`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -63,7 +63,7 @@
 
     const deleteExam = async () => {
         isLoading = true;
-        await fetch(`http://localhost:10000/exams/${examId}`, {
+        await fetch(`http://localhost:10000/examiners/exams/${examId}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -79,7 +79,7 @@
 
     const updateExam = async () => {
         isLoading = true;
-        await fetch(`http://localhost:10000/exams/${examId}`, {
+        await fetch(`http://localhost:10000/examiners/exams/${examId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
