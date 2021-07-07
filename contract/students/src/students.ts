@@ -57,54 +57,9 @@ export class StudentContract extends Contract {
         return exam.toString();
     }
 
-    // UpdateAsset updates an existing asset in the world state with provided parameters.
-    @Transaction()
-    public async UpdateExam(
-        ctx: Context,
-        id: string,
-        examiner: string,
-        title: string,
-        subject: string,
-        date: string,
-        duration: number,
-        password: string,
-        address: string
-    ): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
-        if (ctx.clientIdentity.assertAttributeValue("Email", examiner)) {
-            const updatedExam: Exam = {
-                ID: id,
-                Examiner: examiner,
-                Title: title,
-                Subject: subject,
-                Date: date,
-                Duration: duration,
-                Password: password,
-                Address: address,
-            };
-            return ctx.stub.putState(
-                id,
-                Buffer.from(JSON.stringify(updatedExam))
-            );
-        } else {
-            throw new Error(
-                `You are not the examiner for this exam ${ctx.clientIdentity.getAttributeValue(
-                    "Email"
-                )} ${examiner}`
-            );
-        }
-    }
-
     // DeleteAsset deletes an given asset from the world state.
     @Transaction()
     public async DeleteExam(ctx: Context, id: string): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
         if (ctx.clientIdentity.assertAttributeValue("Email", exam.Examiner)) {
