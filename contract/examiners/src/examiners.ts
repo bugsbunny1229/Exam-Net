@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { compare } from 'bcrypt';
 import {
     Context,
     Contract,
@@ -68,66 +67,37 @@ export class ExamContract extends Contract {
         address: string,
         live: string = "0"
     ): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
-        if (ctx.clientIdentity.assertAttributeValue("Email", examiner)) {
-            const updatedExam: Exam = {
-                ID: id,
-                Examiner: examiner,
-                Title: title,
-                Subject: subject,
-                Date: date,
-                Duration: duration,
-                Password: password,
-                Address: address,
-                Live: live,
-            };
-            return ctx.stub.putState(
-                id,
-                Buffer.from(JSON.stringify(updatedExam))
-            );
+        const examString = await this.FetchExam(ctx, id);
+        const exam: Exam  = JSON.parse(examString);
+        if(!exam.Live){
+            if (ctx.clientIdentity.assertAttributeValue("Email", examiner)) {
+                const updatedExam: Exam = {
+                    ID: id,
+                    Examiner: examiner,
+                    Title: title,
+                    Subject: subject,
+                    Date: date,
+                    Duration: duration,
+                    Password: password,
+                    Address: address,
+                    Live: live,
+                };
+                return ctx.stub.putState(
+                    id,
+                    Buffer.from(JSON.stringify(updatedExam))
+                );
+            } else {
+                throw new Error(
+                    "You are not the examiner for this exam"
+                );
+            }
         } else {
-            throw new Error(
-                `You are not the examiner for this exam: ${ctx.clientIdentity.getAttributeValue(
-                    "Email"
-                )} ${examiner}`
-            );
+            throw new Error("Cannot update an Exam while it is Live. Please cancel the Exam first.");
         }
     }
 
     @Transaction()
-    public async ScheduleExam(ctx: Context, id: string, password: string): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
-        const examString: string = await this.FetchExam(ctx, id);
-        const exam: Exam = JSON.parse(examString);
-        if(await compare(password, exam.Password)){
-            await this.UpdateExam(
-                ctx,
-                id,
-                exam.Examiner,
-                exam.Title,
-                exam.Subject,
-                exam.Date,
-                exam.Duration,
-                exam.Password,
-                exam.Address,
-                "1"
-            );
-        }
-        throw new Error("Invalid password");
-    }
-
-    @Transaction()
-    public async CancelExam(ctx: Context, id: string): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
+    public async ScheduleExam(ctx: Context, id: string): Promise<void> {
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
         await this.UpdateExam(
@@ -140,17 +110,40 @@ export class ExamContract extends Contract {
             exam.Duration,
             exam.Password,
             exam.Address,
-            "0"
+            "1"
         );
+    }
+
+    @Transaction()
+    public async CancelExam(ctx: Context, id: string): Promise<void> {
+        const examString: string = await this.FetchExam(ctx, id);
+        const exam: Exam = JSON.parse(examString);
+        if (ctx.clientIdentity.assertAttributeValue("Email", exam.Examiner)) {
+            const updatedExam: Exam = {
+                ID: id,
+                Examiner: exam.Examiner,
+                Title: exam.Title,
+                Subject: exam.Subject,
+                Date: exam.Date,
+                Duration: exam.Duration,
+                Password: exam.Password,
+                Address: exam.Address,
+                Live: "0",
+            };
+            return ctx.stub.putState(
+                id,
+                Buffer.from(JSON.stringify(updatedExam))
+            );
+        } else {
+            throw new Error(
+                "You are not the examiner for this exam"
+            );
+        }
     }
 
     // DeleteAsset deletes an given asset from the world state.
     @Transaction()
     public async DeleteExam(ctx: Context, id: string): Promise<void> {
-        const exists = await this.ExamExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The exam ${id} does not exist`);
-        }
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
         if (ctx.clientIdentity.assertAttributeValue("Email", exam.Examiner)) {
