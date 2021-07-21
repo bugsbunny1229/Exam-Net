@@ -55,17 +55,17 @@
         const keyBytes: ArrayBuffer = pbkdf2DerivedBytes.slice(0, 32);
         const ivBytes: ArrayBuffer = pbkdf2DerivedBytes.slice(32);
 
-        const encryptionKey: CryptoKey = await window.crypto.subtle.importKey(
+        const encryptionKey: CryptoKey = await crypto.subtle.importKey(
             "raw",
             keyBytes,
-            { name: "AES-CBC", length: 256 },
+            { name: "AES-GCM", length: 256 },
             false,
             ["encrypt"]
         );
 
         progressText = "Encrypting file...";
         let encryptedBytes: any = await crypto.subtle.encrypt(
-            { name: "AES-CBC", iv: ivBytes },
+            { name: "AES-GCM", iv: ivBytes },
             encryptionKey,
             paperBuffer
         );
