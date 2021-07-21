@@ -1,6 +1,7 @@
+import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import {
-  Gateway, GatewayOptions, Identity, Wallet, Contract,
+  Gateway, GatewayOptions, Wallet, Contract,
 } from 'fabric-network';
 import { buildWallet } from '../utils/AppUtil';
 
@@ -18,9 +19,23 @@ const isExaminerAuth = async (
   const { username, id }: { username: string, id: string } = req.body;
   if (username && id) {
     try {
-      const identity: Identity = JSON.parse(JSON.parse(id).identity);
+      const identity = JSON.parse(JSON.parse(id).identity);
+      const key = crypto.createPublicKey(
+        {
+          key: identity.privateKey,
+          format: 'pem',
+        },
+      ).export(
+        {
+          type: 'pkcs1',
+          format: 'pem',
+        },
+      );
+
+      res.locals.examinerKey = key as string;
+      console.log(key);
       let wallet: Wallet = await buildWallet();
-      await wallet.put(username, identity);
+      await wallet.put(username, identity.certificate);
       try {
         const gateway = new Gateway();
 
@@ -63,9 +78,9 @@ const isStudentAuth = async (
   const { username, id }: { username: string, id: string } = req.body;
   if (username && id) {
     try {
-      const identity: Identity = JSON.parse(JSON.parse(id).identity);
+      const identity = JSON.parse(JSON.parse(id).identity);
       let wallet: Wallet = await buildWallet();
-      await wallet.put(username, identity);
+      await wallet.put(username, identity.certificate);
       try {
         const gateway = new Gateway();
 

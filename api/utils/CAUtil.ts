@@ -3,9 +3,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+import crypto from 'crypto';
 import { Response } from 'express';
 import FabricCAServices, { IAttributeRequest } from 'fabric-ca-client';
-import { Identity, X509Identity } from 'fabric-network';
+import { X509Identity } from 'fabric-network';
 /**
  *
  * @param {*} ccp
@@ -33,8 +34,19 @@ const enrollUser = async (
   userId: string,
   secret: string,
   attributes?: IAttributeRequest[],
-): Promise<Identity> => {
+): Promise<Record<string, any>> => {
   // Check to see if we've already enrolled the user
+  const { privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: 'pkcs1',
+      format: 'pem',
+    },
+    privateKeyEncoding: {
+      type: 'pkcs1',
+      format: 'pem',
+    },
+  });
 
   const enrollment = await caClient.enroll({
     enrollmentID: userId,
@@ -52,7 +64,7 @@ const enrollUser = async (
   console.log(
     `Successfully registered user ${userId}`,
   );
-  return x509Identity;
+  return { certificate: x509Identity, privateKey };
 };
 
 const issueIdentity = async (
