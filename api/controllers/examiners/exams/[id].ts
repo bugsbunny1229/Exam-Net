@@ -31,6 +31,7 @@ const scheduleExam = async (req: Request, res: Response) => {
       Address,
       Examiner,
       Live,
+      ExaminerKey,
     } = res.locals.exam;
     const date = res.locals.exam.Date;
     if (await compare(password, Password)) {
@@ -46,6 +47,7 @@ const scheduleExam = async (req: Request, res: Response) => {
           Duration.toString(),
           Password,
           Address,
+          ExaminerKey,
         );
         const emails = await pool.query('SELECT email FROM STUDENTS');
         if (emails.rowCount) {
@@ -145,6 +147,7 @@ const updateExam = async (req: Request, res: Response) => {
         currentExam.Password,
         currentExam.Address,
         currentExam.Live,
+        currentExam.ExaminerKey,
       );
       res.json({ message: paperBuffer.toJSON() });
     } else {
@@ -171,10 +174,23 @@ const deleteExam = async (req: Request, res: Response) => {
   }
 };
 
+const fetchAnswerSheets = async (req: Request, res: Response) => {
+  try {
+    const details: Buffer = await res.locals.studentContract.evaluateTransaction(
+      'GetAnswerSheets',
+      req.params.id,
+    );
+    res.json({ answerSheets: JSON.parse(details.toString()) });
+  } catch (err) {
+    res.status(500).json({ error: `Submissions not found: ${err}` });
+  }
+};
+
 export {
   fetchExam,
   scheduleExam,
   cancelExam,
   updateExam,
   deleteExam,
+  fetchAnswerSheets,
 };

@@ -1,7 +1,7 @@
 import { hash } from 'bcrypt';
 import { Request, Response } from 'express';
 
-const fetchAllExams = async (req: Request, res: Response) => {
+const fetchAllExams = async (_req: Request, res: Response) => {
   try {
     const result: Buffer = await res.locals.contract.evaluateTransaction(
       'GetAllExams',
@@ -25,14 +25,14 @@ const newExam = async (req: Request, res: Response) => {
       password,
       address,
     }: {
-          title: string;
-          username: string;
-          subject: string;
-          date: string;
-          duration: number;
-          password: string;
-          address: string;
-        } = req.body;
+      title: string;
+      username: string;
+      subject: string;
+      date: string;
+      duration: number;
+      password: string;
+      address: string;
+    } = req.body;
 
     const live: boolean = req.body.live ?? false;
     if (title && subject && date && duration && password && address) {
@@ -51,6 +51,7 @@ const newExam = async (req: Request, res: Response) => {
         passwordHash,
         address,
         live ? '1' : '0',
+        res.locals.examinerKey,
       );
       res.json({ message: paperBuffer.toJSON() });
     } else {

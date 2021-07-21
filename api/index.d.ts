@@ -10,12 +10,14 @@ interface Exam {
     Duration: number;
     Password: string;
     Address: string;
+    ExaminerKey: string;
 }
 
 interface Locals {
     contract?: Contract;
     studentContract?: Contract;
     exam?: Exam;
+    examinerKey?: string;
 }
 
 declare module 'express' {
