@@ -3,6 +3,9 @@ import { Object, Property } from 'fabric-contract-api';
 @Object()
 export class Exam {
     @Property()
+    public Type?: string = "Exam";
+
+    @Property()
     public ID: string;
 
     @Property()
@@ -25,4 +28,7 @@ export class Exam {
 
     @Property()
     public Address: string;
+
+    @Property()
+    public ExaminerKey: string;
 }
