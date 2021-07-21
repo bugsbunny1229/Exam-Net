@@ -118,6 +118,7 @@
                 <th>Examiner</th>
                 <th>Schedule</th>
                 <th>Cancel</th>
+                <th>Answer Sheets</th>
                 <th>Delete</th>
                 <th>Edit</th>
             </tr>
@@ -170,6 +171,10 @@
                     <button disabled={!exam.Live} on:click={cancelExam}>
                         Cancel Exam
                     </button>
+                </td>
+                abc
+                <td>
+                    <Link to={`/exams/${examId}/answer-sheets`}>Answer Sheets</Link>
                 </td>
                 <td>
                     <button on:click={deleteExam}> Delete Exam </button>
