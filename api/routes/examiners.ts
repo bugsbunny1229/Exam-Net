@@ -6,6 +6,7 @@ import {
   cancelExam,
   updateExam,
   deleteExam,
+  fetchAnswerSheets,
 } from '../controllers/examiners/exams/[id]';
 
 const examRouter: Router = Router();
@@ -22,5 +23,6 @@ examRouter
 
 examRouter.post('/:id/schedule', scheduleExam);
 examRouter.post('/:id/cancel', cancelExam);
+examRouter.post('/:id/answer-sheets', fetchAnswerSheets);
 
 export default examRouter;

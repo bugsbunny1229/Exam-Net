@@ -6,7 +6,8 @@ import { Pool } from 'pg';
 import { isExaminerAuth, isStudentAuth } from './middleware/auth';
 import enrollRouter from './routes/enroll';
 import examRouter from './routes/examiners';
-import studentRouter from './routes/students';
+import studentExamRouter from './routes/students/exams';
+import studentSubmitRouter from './routes/students/submit';
 import { buildCAClient } from './utils/CAUtil';
 import { buildCCPExaminers, buildCCPStudents } from './utils/AppUtil';
 
@@ -45,7 +46,8 @@ const studentAuthMiddleware = async (
 app.use('/enroll', enrollRouter);
 
 app.use('/examiners/exams', examinerAuthMiddleware, examRouter);
-app.use('/students/exams', studentAuthMiddleware, studentRouter);
+app.use('/students/exams', studentAuthMiddleware, studentExamRouter);
+app.use('/students/submit', studentAuthMiddleware, studentSubmitRouter);
 app.get('*', (req: Request, res: Response) => res.status(404).json({ error: 'Does not exist' }));
 
 app.listen(PORT, async () => {

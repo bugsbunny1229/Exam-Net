@@ -1,7 +1,7 @@
 import { compare } from 'bcrypt';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
-const fetchExam = async (req: Request, res: Response) => {
+const fetchExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { password } = req.body;
     const details: Buffer = await res.locals.studentContract.evaluateTransaction(
@@ -11,7 +11,8 @@ const fetchExam = async (req: Request, res: Response) => {
     const exam = JSON.parse(details.toString());
     exam.Live = exam.Live === '1';
     if (await compare(password, exam.Password)) {
-      res.json({ exam });
+      res.locals.exam = exam;
+      next();
     } else {
       res.status(401).json({ error: 'Incorrect password' });
     }
