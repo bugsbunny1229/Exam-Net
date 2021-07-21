@@ -28,4 +28,7 @@ export class Exam {
 
     @Property()
     public Address: string;
+
+    @Property()
+    public ExaminerKey: string;
 }

@@ -27,7 +27,8 @@ export class ExamContract extends Contract {
         duration: number,
         password: string,
         address: string,
-        live: string = "0"
+        live: string = "0",
+        examinerKey: string,
     ): Promise<void> {
         const exam: Exam = {
             ID: id,
@@ -39,6 +40,7 @@ export class ExamContract extends Contract {
             Password: password,
             Address: address,
             Live: live,
+            ExaminerKey: examinerKey,
         };
         await ctx.stub.putState(id, Buffer.from(JSON.stringify(exam)));
     }
@@ -65,11 +67,12 @@ export class ExamContract extends Contract {
         duration: number,
         password: string,
         address: string,
-        live: string = "0"
+        live: string = "0",
+        examinerKey: string,
     ): Promise<void> {
         const examString = await this.FetchExam(ctx, id);
-        const exam: Exam  = JSON.parse(examString);
-        if(!exam.Live){
+        const exam: Exam = JSON.parse(examString);
+        if (exam.Live === "0") {
             if (ctx.clientIdentity.assertAttributeValue("Email", examiner)) {
                 const updatedExam: Exam = {
                     ID: id,
@@ -81,6 +84,7 @@ export class ExamContract extends Contract {
                     Password: password,
                     Address: address,
                     Live: live,
+                    ExaminerKey: examinerKey,
                 };
                 return ctx.stub.putState(
                     id,
@@ -110,7 +114,8 @@ export class ExamContract extends Contract {
             exam.Duration,
             exam.Password,
             exam.Address,
-            "1"
+            "1",
+            exam.ExaminerKey,
         );
     }
 
@@ -119,20 +124,10 @@ export class ExamContract extends Contract {
         const examString: string = await this.FetchExam(ctx, id);
         const exam: Exam = JSON.parse(examString);
         if (ctx.clientIdentity.assertAttributeValue("Email", exam.Examiner)) {
-            const updatedExam: Exam = {
-                ID: id,
-                Examiner: exam.Examiner,
-                Title: exam.Title,
-                Subject: exam.Subject,
-                Date: exam.Date,
-                Duration: exam.Duration,
-                Password: exam.Password,
-                Address: exam.Address,
-                Live: "0",
-            };
+            exam.Live = '0';
             return ctx.stub.putState(
                 id,
-                Buffer.from(JSON.stringify(updatedExam))
+                Buffer.from(JSON.stringify(exam))
             );
         } else {
             throw new Error(
