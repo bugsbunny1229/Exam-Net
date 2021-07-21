@@ -9,4 +9,5 @@ interface Exam {
     Duration: number;
     Password: string;
     Address: string;
+    ExaminerKey: string;
 }
