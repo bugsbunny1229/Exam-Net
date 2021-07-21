@@ -50,7 +50,7 @@ const registerStudents = async (req: Request, res: Response) => {
     caClientStudents,
     wallet,
     username,
-    'students',
+    `students.batch2019.${rollNumber.slice(4, 7)}`,
     [{
       name: 'Name',
       value: name,

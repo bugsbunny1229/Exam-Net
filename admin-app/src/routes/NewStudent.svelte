@@ -41,6 +41,7 @@
                         name,
                         username,
                         identity: JSON.parse(identityString),
+                        rollNumber,
                     }),
                 });
 
