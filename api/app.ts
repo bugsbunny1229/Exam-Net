@@ -3,13 +3,15 @@ import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { Pool } from 'pg';
-import { isExaminerAuth, isStudentAuth } from './middleware/auth';
-import enrollRouter from './routes/enroll';
-import examRouter from './routes/examiners';
-import studentExamRouter from './routes/students/exams';
-import studentSubmitRouter from './routes/students/submit';
 import { buildCAClient } from './utils/CAUtil';
 import { buildCCPExaminers, buildCCPStudents } from './utils/AppUtil';
+import { isExaminerAuth, isStudentAuth } from './middleware/auth';
+import enrollRouter from './routes/enroll';
+import examinerExamRouter from './routes/examiners/exams';
+import examinersResultsRouter from './routes/examiners/results';
+import studentExamRouter from './routes/students/exams';
+import studentResultsRouter from './routes/students/results';
+import studentSubmitRouter from './routes/students/submit';
 
 dotenv.config();
 const app = express();
@@ -45,10 +47,12 @@ const studentAuthMiddleware = async (
 
 app.use('/enroll', enrollRouter);
 
-app.use('/examiners/exams', examinerAuthMiddleware, examRouter);
+app.use('/examiners/exams', examinerAuthMiddleware, examinerExamRouter);
+app.use('/examiners/results', examinerAuthMiddleware, examinersResultsRouter);
 app.use('/students/exams', studentAuthMiddleware, studentExamRouter);
+app.use('/students/results', studentAuthMiddleware, studentResultsRouter);
 app.use('/students/submit', studentAuthMiddleware, studentSubmitRouter);
-app.get('*', (req: Request, res: Response) => res.status(404).json({ error: 'Does not exist' }));
+app.get('*', (_, res: Response) => res.status(404).json({ error: 'Does not exist' }));
 
 app.listen(PORT, async () => {
   await pool.connect();
