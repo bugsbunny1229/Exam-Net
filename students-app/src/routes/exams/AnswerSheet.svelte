@@ -1,13 +1,15 @@
 <script lang="ts">
     import { get } from "svelte/store";
-    import forge from "node-forge";
+    import { Link, navigate } from "svelte-navigator";
+    import { pki } from "node-forge";
+    import { examStore } from "../../stores/exam";
     import { usernameStore, identityStore } from "../../stores/identity";
 
     export let examId: string;
     let paper: FileList;
     const username: string = get(usernameStore);
     const identityString: string = get(identityStore);
-    const examinerKey: string = history.state.examinerKey;
+    const { ExaminerKey } = get(examStore);
 
     const generatePassword = (): string => {
         var buffer = new Uint8Array(64);
@@ -20,7 +22,7 @@
             let paperBuffer = await paper[0].arrayBuffer();
             paperBuffer = new Uint8Array(paperBuffer);
 
-            const publicKey = forge.pki.publicKeyFromPem(examinerKey);
+            const publicKey = pki.publicKeyFromPem(ExaminerKey);
             console.log("imported RSA key");
 
             const PBKDF2_ITERATIONS = 10000;
@@ -92,27 +94,39 @@
             );
 
             const infuraRef = await infuraRes.json();
-            const res = await fetch(`http://localhost:10000/students/submit/${examId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: identityString,
-                    username,
-                    key: encryptedKey,
-                    examId,
-                    address: infuraRef.Hash,
-                }),
-            });
+            const res = await fetch(
+                `http://localhost:10000/students/submit/${examId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id: identityString,
+                        username,
+                        key: encryptedKey,
+                        examId,
+                        address: infuraRef.Hash,
+                    }),
+                }
+            );
             console.log(await res.json());
         } catch (e) {
             console.error(e);
         }
     };
+
+    const showResults = () => {
+        navigate(`/exams/${examId}/results`, {
+            state: {
+                examId,
+            },
+        });
+    };
 </script>
 
 <main>
+    <button on:click={showResults}>Results</button>
     <form on:submit|preventDefault={onSubmit}>
         <input
             type="file"

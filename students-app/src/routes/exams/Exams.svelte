@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get } from "svelte/store";
-    import { Link } from "svelte-navigator";
+    import { navigate } from "svelte-navigator";
     import { usernameStore, identityStore } from "../../stores/identity";
+    import { examStore } from "../../stores/exam";
 
     let isLoading: boolean = false;
     const username: string = get(usernameStore);
@@ -40,6 +41,11 @@
         }
         isLoading = false;
     });
+
+    const getExamDetails = (exam: Exam) => {
+        examStore.set(exam);
+        navigate(`/exams/${exam.ID}`);
+    };
 </script>
 
 <main>
@@ -67,7 +73,9 @@
                     <td>{exam.Live ? "Yes" : "No"}</td>
                     <td>{exam.Examiner}</td>
                     <td>
-                        <Link to={`/exams/${exam.ID}`}>Details</Link>
+                        <button on:click={() => getExamDetails(exam)}>
+                            Details
+                        </button>
                     </td>
                 </tr>
             {/each}

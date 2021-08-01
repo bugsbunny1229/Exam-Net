@@ -2,6 +2,7 @@
     import { get } from "svelte/store";
     import { navigate } from "svelte-navigator";
     import { usernameStore, identityStore } from "../../../stores/identity";
+    import { examStore } from "../../../stores/exam";
 
     export let examId: string;
     let isLoading: boolean = false;
@@ -42,6 +43,7 @@
                 Address: examRes.Address,
                 ExaminerKey: examRes.ExaminerKey,
             };
+            examStore.set(exam);
             const infuraRes = await fetch(
                 "https://ipfs.infura.io:5001/api/v0/cat?" +
                     new URLSearchParams({
@@ -115,11 +117,7 @@
     };
 
     const onSubmit = () => {
-        navigate(`/exams/${examId}/submit`, {
-            state: {
-                examinerKey: exam.ExaminerKey,
-            },
-        });
+        navigate(`/exams/${examId}/submit`);
     };
 </script>
 

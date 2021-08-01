@@ -1,10 +1,11 @@
 <script lang="ts">
     import { Router, Link, Route } from "svelte-navigator";
-    import EnrollForm from "./routes/EnrollForm.svelte";
     import AnswerSheet from "./routes/exams/AnswerSheet.svelte";
+    import EnrollForm from "./routes/EnrollForm.svelte";
     import Exams from "./routes/exams/Exams.svelte";
     import ExamDetail from "./routes/exams/[id]/[id].svelte";
     import Login from "./routes/Login.svelte";
+    import Result from "./routes/results/[answerSheetId].svelte";
 </script>
 
 <Router>
@@ -22,6 +23,7 @@
                 <Route path="/">
                     <ExamDetail examId={params.id} />
                 </Route>
+                <Route path="/results" component={Result} />
                 <Route path="/submit">
                     <AnswerSheet examId={params.id} />
                 </Route>
