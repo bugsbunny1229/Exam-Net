@@ -33,7 +33,7 @@ const isExaminerAuth = async (
       );
 
       res.locals.examinerKey = key as string;
-      console.log(key);
+      // res.locals.privateKey = identity.privateKey;
       let wallet: Wallet = await buildWallet();
       await wallet.put(username, identity.certificate);
       try {
