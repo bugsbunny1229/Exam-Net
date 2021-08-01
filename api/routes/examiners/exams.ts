@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { fetchAllExams, newExam } from '../controllers/examiners/exams/exams';
+import { fetchAllExams, newExam } from '../../controllers/examiners/exams/exams';
 import {
   fetchExam,
   scheduleExam,
@@ -7,7 +7,7 @@ import {
   updateExam,
   deleteExam,
   fetchAnswerSheets,
-} from '../controllers/examiners/exams/[id]';
+} from '../../controllers/examiners/exams/[id]';
 
 const examRouter: Router = Router();
 
