@@ -7,6 +7,7 @@ import {
 } from "fabric-contract-api";
 import { AnswerSheet } from "./models/answerSheet";
 import { Exam } from "./models/exam";
+import { Result } from "./models/result";
 
 @Info({
     title: "StudentContract",
@@ -153,18 +154,137 @@ export class StudentContract extends Contract {
     @Transaction(false)
     @Returns("string")
     public async GetAnswerSheets(ctx: Context, examId: string): Promise<string> {
-        const answerSheetIterator = await ctx.stub.getStateByPartialCompositeKey("examID~Roll~ID", [examId]);
-        const answerSheets = [];
-        let results = await answerSheetIterator.next();
-        while (!results.done) {
-            if (!results || !results.value || !results.value.key) {
-                return;
+        const examString = await this.FetchExam(ctx, examId);
+        const exam: Exam = JSON.parse(examString);
+        const email = ctx.clientIdentity.getAttributeValue("Email");
+        if (email == exam.Examiner) {
+            const answerSheetIterator = await ctx.stub.getStateByPartialCompositeKey("examID~Roll~ID", [examId]);
+            const answerSheets = [];
+            let results = await answerSheetIterator.next();
+            while (!results.done) {
+                if (!results || !results.value || !results.value.key) {
+                    return;
+                }
+                let answerSheetId = ctx.stub.splitCompositeKey(results.value.key).attributes[2];
+                const answerSheetString = await this.GetAnswerSheetByID(ctx, answerSheetId);
+                answerSheets.push(JSON.parse(answerSheetString));
+                results = await answerSheetIterator.next();
             }
-            let answerSheetId = ctx.stub.splitCompositeKey(results.value.key).attributes[1];
-            const answerSheetString = await this.GetAnswerSheetByID(ctx, answerSheetId);
-            answerSheets.push(JSON.parse(answerSheetString));
-            results = await answerSheetIterator.next();
+            return JSON.stringify(answerSheets);
+        } else {
+            throw new Error('You are not the Examiner for this Exam');
         }
-        return JSON.stringify(answerSheets);
+    }
+
+    @Transaction()
+    public async PublishResult(ctx: Context, id: string, answerSheetId: string, address: string, signature: string): Promise<void> {
+        const answerSheetString = await this.GetAnswerSheetByID(ctx, answerSheetId);
+        const answerSheet: AnswerSheet = JSON.parse(answerSheetString);
+        const examString = await this.FetchExam(ctx, answerSheet.ExamID);
+        const exam: Exam = JSON.parse(examString);
+        const email = ctx.clientIdentity.getAttributeValue("Email");
+        if (email == exam.Examiner) {
+            const indexName = "examId~answerSheetId~ID";
+            const answerSheetIterator = await ctx.stub.getStateByPartialCompositeKey(indexName, [answerSheet.ExamID, answerSheetId]);
+            let results = await answerSheetIterator.next();
+            if (results.done) {
+                const result: Result = {
+                    Type: "Result",
+                    ID: id,
+                    AnswerSheetID: answerSheetId,
+                    ExamID: answerSheet.ExamID,
+                    RollNumber: answerSheet.RollNumber,
+                    Examiner: email,
+                    Address: address,
+                    Signature: signature
+                }
+                await ctx.stub.putState(id, Buffer.from(JSON.stringify(result)));
+                const indexKey = ctx.stub.createCompositeKey(indexName, [answerSheet.ExamID, answerSheetId, id]);
+                await ctx.stub.putState(indexKey, Buffer.from('\u0000'));
+            } else {
+                throw new Error("You have already published the result for this answer sheet");
+            }
+        } else {
+            throw new Error(
+                "You are not the examiner for this exam"
+            );
+        }
+    }
+
+    private async GetResultByID(ctx: Context, id: string): Promise<string> {
+        const entity = await ctx.stub.getState(id);
+        if (!entity || entity.length === 0) {
+            throw new Error(`The result ${id} does not exist`);
+        }
+        const result: Result = JSON.parse(entity.toString());
+        if (result.Type === "Result") {
+            return JSON.stringify(result);
+        }
+        throw new Error(`Entity with ID ${id} is not a result`);
+    }
+
+    @Transaction(false)
+    @Returns("string")
+    public async FetchResultsByExam(ctx: Context, examId: string): Promise<string> {
+        const indexName = "examId~answerSheetId~ID";
+        const examString = await this.FetchExam(ctx, examId);
+        const exam: Exam = JSON.parse(examString);
+        const email = ctx.clientIdentity.getAttributeValue("Email");
+        if (email == exam.Examiner) {
+            const resultsIterator = await ctx.stub.getStateByPartialCompositeKey(indexName, [examId]);
+            const results = [];
+            let it = await resultsIterator.next();
+            while (!it.done) {
+                if (!it || !it.value || !it.value.key) {
+                    return;
+                }
+                let resultId = ctx.stub.splitCompositeKey(it.value.key).attributes[2];
+                const answerSheetString = await this.GetResultByID(ctx, resultId);
+                results.push(JSON.parse(answerSheetString));
+                it = await resultsIterator.next();
+            }
+            return JSON.stringify(results);
+        } else {
+            throw new Error("You are not the examiner for this exam");
+        }
+    }
+
+    private async FetchResultForAnswerSheet(ctx: Context, answerSheetId: string): Promise<string> {
+        const indexName = "examId~answerSheetId~ID";
+        const answerSheetString = await this.GetAnswerSheetByID(ctx, answerSheetId);
+        const answerSheet: AnswerSheet = JSON.parse(answerSheetString);
+        const rollNumber = ctx.clientIdentity.getAttributeValue("RollNumber");
+        if (rollNumber == answerSheet.RollNumber) {
+            const resultsIterator = await ctx.stub.getStateByPartialCompositeKey(indexName, [answerSheet.ExamID, answerSheetId]);
+            let it = await resultsIterator.next();
+            if (!it.done) {
+                if (!it || !it.value || !it.value.key) {
+                    return;
+                }
+                let resultId = ctx.stub.splitCompositeKey(it.value.key).attributes[2];
+                return this.GetResultByID(ctx, resultId);
+            } else {
+                throw new Error("Results have not yet been published for this answer sheet");
+            }
+        } else {
+            throw new Error("You are not the owner of this answer sheet");
+        }
+    }
+
+    @Transaction(false)
+    @Returns("string")
+    public async GetResult(ctx: Context, examId: string): Promise<string> {
+        const rollNumber = ctx.clientIdentity.getAttributeValue("RollNumber");
+        const answerSheetIterator = await ctx.stub.getStateByPartialCompositeKey("examID~Roll~ID", [examId, rollNumber]);
+        let results = await answerSheetIterator.next();
+        if (!results.done) {
+            if (!results || !results.value || !results.value.key) {
+                throw new Error('No submission found');
+            }
+            let answerSheetId = ctx.stub.splitCompositeKey(results.value.key).attributes[2];
+            return this.FetchResultForAnswerSheet(ctx, answerSheetId);
+        } else {
+            throw new Error('No submission found');
+        }
     }
 }
