@@ -1,15 +1,16 @@
 <script lang="ts">
-    import forge from "node-forge";
+    import { pki } from "node-forge";
     import { get } from "svelte/store";
-    import { usernameStore, identityStore } from "../../../../stores/identity";
+    import { Link } from "svelte-navigator";
+    import { answerSheetStore } from "../../../../../stores/answerSheet";
+    import { identityStore } from "../../../../../stores/identity";
 
     let isLoading: boolean = false;
     let decrypted: boolean = false;
-    const username: string = get(usernameStore);
     const identityString: string = get(identityStore);
     let url: string;
     const { privateKey } = JSON.parse(JSON.parse(identityString).identity);
-    const { answerSheet } = history.state;
+    const answerSheet: AnswerSheet = get(answerSheetStore);
 
     const load = async () => {
         isLoading = true;
@@ -28,7 +29,7 @@
                 await encryptedBlob.arrayBuffer()
             );
             var iterations = 10000;
-            const pKey = forge.pki.privateKeyFromPem(privateKey);
+            const pKey = pki.privateKeyFromPem(privateKey);
             const password = pKey.decrypt(answerSheet.Key);
             var passwordBytes = new TextEncoder().encode(password);
             var pbkdf2Salt = encryptedBuffer.slice(8, 16);
@@ -97,5 +98,6 @@
             width="100%"
             height="800px"
         />
+        <Link to="results">Results</Link>
     {/if}
 </main>

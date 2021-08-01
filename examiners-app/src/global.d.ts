@@ -20,3 +20,14 @@ interface AnswerSheet {
     Key: string;
     Address: string;
 }
+
+interface Result {
+    Type?: "Result";
+    ID: string;
+    AnswerSheetID: string;
+    ExamID: string;
+    Examiner: string;
+    RollNumber: string;
+    Address: string;
+    Signature: string;
+}

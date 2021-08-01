@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get } from "svelte/store";
-    import { Link, navigate } from "svelte-navigator";
+    import { navigate } from "svelte-navigator";
+    import { answerSheetStore } from "../../../../stores/answerSheet";
     import { usernameStore, identityStore } from "../../../../stores/identity";
 
     export let examId: string;
@@ -44,11 +45,8 @@
     });
 
     const onClick = (answerSheet) => {
-        navigate(`/exams/${examId}/answer-sheets/${answerSheet.ID}`, {
-            state: {
-                answerSheet,
-            },
-        });
+        answerSheetStore.set(answerSheet);
+        navigate(`/exams/${examId}/answer-sheets/${answerSheet.ID}`);
     };
 </script>
 

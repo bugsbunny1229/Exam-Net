@@ -119,6 +119,7 @@
                 <th>Schedule</th>
                 <th>Cancel</th>
                 <th>Answer Sheets</th>
+                <th>Results</th>
                 <th>Delete</th>
                 <th>Edit</th>
             </tr>
@@ -172,9 +173,11 @@
                         Cancel Exam
                     </button>
                 </td>
-                abc
                 <td>
                     <Link to={`/exams/${examId}/answer-sheets`}>Answer Sheets</Link>
+                </td>
+                <td>
+                    <Link to={`/exams/${examId}/results`}>Results</Link>
                 </td>
                 <td>
                     <button on:click={deleteExam}> Delete Exam </button>
