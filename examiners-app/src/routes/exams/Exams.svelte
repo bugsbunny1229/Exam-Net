@@ -2,6 +2,8 @@
     import { onMount } from "svelte";
     import { get } from "svelte/store";
     import { Link } from "svelte-navigator";
+    import Swal from "sweetalert2";
+    import Loader from "../../Loader.svelte";
     import { usernameStore, identityStore } from "../../stores/identity";
 
     let isLoading: boolean = false;
@@ -9,70 +11,169 @@
     const identityString: string = get(identityStore);
     let exams: Exam[] = [];
 
+    const fireError = (err) =>
+        Swal.fire({
+            title: "Error!",
+            text: err,
+            icon: "error",
+            confirmButtonText: "Ok",
+        });
+
     onMount(async () => {
         isLoading = true;
-        const res = await fetch("http://localhost:10000/examiners/exams/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                id: identityString,
-                username,
-            }),
-        });
-        if (res.ok) {
-            const apiRes = await res.json();
-            const examArr: Record<string, any>[] = apiRes.exams;
-            console.log(apiRes.exams);
-            exams = examArr.map<Exam>((e) => ({
-                ID: e.Exam.ID,
-                Date: e.Exam.Date,
-                Duration: e.Exam.Duration,
-                Title: e.Exam.Title,
-                Subject: e.Exam.Subject,
-                Live: e.Exam.Live == "1",
-                Examiner: e.Exam.Examiner,
-                Password: e.Exam.Password,
-                Address: e.Exam.Address,
-            }));
-        } else {
-            const r = await res.json();
-            alert(`Error occurred: ${r.error}`);
+        try {
+            const res = await fetch("http://localhost:10000/examiners/exams/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: identityString,
+                    username,
+                }),
+            });
+            if (res.ok) {
+                const apiRes = await res.json();
+                const examArr: Record<string, any>[] = apiRes.exams;
+                console.log(apiRes.exams);
+                exams = examArr.map<Exam>((e) => ({
+                    ID: e.Exam.ID,
+                    Date: e.Exam.Date,
+                    Duration: e.Exam.Duration,
+                    Title: e.Exam.Title,
+                    Subject: e.Exam.Subject,
+                    Live: e.Exam.Live == "1",
+                    Examiner: e.Exam.Examiner,
+                    Password: e.Exam.Password,
+                    Address: e.Exam.Address,
+                }));
+            } else {
+                const r = await res.json();
+                fireError(`Error occurred: ${r.error}`);
+            }
+        } catch (err) {
+            fireError(`Couldn't load exams: ${err}`);
+        } finally {
+            isLoading = false;
         }
-        isLoading = false;
     });
 </script>
 
-<main>
+<div class="h-full flex flex-col items-center">
     {#if isLoading}
-        <p>Loading...</p>
+        <div class="flex flex-col items-center justify-center">
+            <Loader stroke="#fff" />
+        </div>
     {:else}
-        <h1>All Exams</h1>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Duration</th>
-                <th>Title</th>
-                <th>Subject</th>
-                <th>Live</th>
-                <th>Examiner</th>
-            </tr>
-            {#each exams as exam}
-                <tr>
-                    <td>{exam.ID}</td>
-                    <td>{new Date(exam.Date)}</td>
-                    <td>{exam.Duration}</td>
-                    <td>{exam.Title}</td>
-                    <td>{exam.Subject}</td>
-                    <td>{exam.Live ? "Yes" : "No"}</td>
-                    <td>{exam.Examiner}</td>
-                    <td>
-                        <Link to={`/exams/${exam.ID}`}>Details</Link>
-                    </td>
-                </tr>
-            {/each}
-        </table>
+        <div class="my-5 sm:-mx-6 lg:-mx-8">
+            <div class="py-2 align-middle inline-block sm:px-6 lg:px-8">
+                <div
+                    class="shadow-2xl overflow-hidden border-b border-gray-200 sm:rounded-lg"
+                >
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    ID
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Date
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Duration
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Title
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Subject
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Live
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Examiner
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                    Details
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {#each exams as exam}
+                                <tr>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.ID}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {new Date(exam.Date).toLocaleString()}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.Duration}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.Title}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.Subject}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.Live ? "Yes" : "No"}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-gray-900"
+                                    >
+                                        {exam.Examiner}
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-indigo-600 hover:text-indigo-900"
+                                    >
+                                        <Link to={`/exams/${exam.ID}`}>
+                                            Details
+                                        </Link>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     {/if}
-</main>
+</div>
