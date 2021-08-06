@@ -81,11 +81,13 @@ const scheduleExam = async (req: Request, res: Response) => {
             });
           });
         }
+        res.json({ message: 'Scheduled exam' });
       } else {
         res.json({ message: 'Exam is already live' });
       }
+    } else {
+      res.status(403).json({ error: 'Invalid password' });
     }
-    res.status(403).json({ error: 'Invalid password' });
   } catch (err) {
     res.status(500).json({
       error: `Failed to execute transaction: ${err}`,
@@ -102,12 +104,15 @@ const cancelExam = async (_req: Request, res: Response) => {
     if (Live) {
       await res.locals.contract.submitTransaction('CancelExam', ID);
       await res.locals.studentContract.submitTransaction('DeleteExam', ID);
-      scheduledJobs[ID].cancel();
+      scheduledJobs[ID]?.cancel();
+      console.log('cancelled');
       res.json({ message: 'Cancelled' });
     } else {
+      console.log('already');
       res.json({ message: 'Exam is already cancelled' });
     }
   } catch (err) {
+    console.log(err);
     res.status(500).json({
       error: `Failed to execute transaction: ${err}`,
     });
