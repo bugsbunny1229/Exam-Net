@@ -1,7 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import {
     Context,
     Contract,
@@ -150,14 +146,6 @@ export class ExamContract extends Contract {
                 )} ${exam.Examiner}`
             );
         }
-    }
-
-    // AssetExists returns true when asset with given ID exists in world state.
-    @Transaction(false)
-    @Returns("boolean")
-    public async ExamExists(ctx: Context, id: string): Promise<boolean> {
-        const assetJSON = await ctx.stub.getState(id);
-        return assetJSON && assetJSON.length > 0;
     }
 
     // GetAllAssets returns all assets found in the world state.

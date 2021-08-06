@@ -279,7 +279,7 @@ export class StudentContract extends Contract {
         let results = await answerSheetIterator.next();
         if (!results.done) {
             if (!results || !results.value || !results.value.key) {
-                throw new Error('No submission found');
+                throw new Error('No result found');
             }
             let answerSheetId = ctx.stub.splitCompositeKey(results.value.key).attributes[2];
             return this.FetchResultForAnswerSheet(ctx, answerSheetId);
