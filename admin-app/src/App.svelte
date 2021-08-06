@@ -4,11 +4,10 @@
     import NewExaminer from "./routes/NewExaminer.svelte";
     import NewStudent from "./routes/NewStudent.svelte";
     let open = true;
-    matchMedia("(min-width: 1024px)").addEventListener("change", (mq) => {
-        if (mq.matches) {
-            open = true;
-        }
-    });
+    matchMedia("(min-width: 1024px)").addEventListener(
+        "change",
+        (mq) => (open = mq.matches)
+    );
 </script>
 
 <body class="flex flex-col text-white h-screen">
